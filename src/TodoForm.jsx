@@ -1,39 +1,60 @@
-import { useState } from "react";
-import ModalWindow from "./ModalWindow";
+import { useForm } from "react-hook-form";
 
-const TodoForm = ({ addTask }) => {
-   const [value, setValue] = useState('');
-   const [modalVisible, setModalVisible] = useState(false);
+const TodoForm = ({ addTask, isFavorite, isCompleted }) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset
+  } = useForm();
 
-   const handleChange = (e) => {
-      setValue(e.target.value)
-   }
+  const onSubmit = (data) => {
+    const name = data.name;
+    const description = data.description;
 
-   const handleSubmit = (e) => {
-      e.preventDefault();
-      addTask(value);
-      setValue('');
+    addTask(name, description, isFavorite, isCompleted);
 
-      if (value === '') {
-         setModalVisible(true)
-      }
-   }
+    reset();
+  }
 
-   const closeModal = () => {
-      setModalVisible(false);
-   }
-
-
-   return (
-      <>
-         <form className="addTask_block" onSubmit={handleSubmit}>
-            <input type="text" value={value} placeholder='Создать дело' className='addTask_input' onChange={handleChange} />
-            <button type='submit' className="button"><span>Создать</span></button>
-         </form>
-         
-         <ModalWindow modalVisible={modalVisible} closeModal={closeModal}/>
-      </>
-   );
+  return (
+    <>
+      <form className="addTask_block" onSubmit={handleSubmit(onSubmit)}>
+        <input
+          type="text"
+          placeholder='Название'
+          className='addTask_input-name'
+          {...register("name",
+            {
+              required: "Название!",
+              minLength: {
+                value: 2,
+                message: "Минимальная длина - 2"
+              },
+              maxLength: {
+                value: 20,
+                message: "Максимальная длина - 20"
+              }
+            })}
+        />
+        {errors.name && <p className="error-name-message">{errors.name.message}</p>}
+        <input
+          type="text"
+          placeholder='Описание'
+          className='addTask_input-description'
+          {...register("description",
+            {
+              maxLength: {
+                value: 30,
+                message: "Максимальная длина - 30"
+              }
+            })}
+        />
+        {errors.description && <p className="error-description-message">{errors.description.message}</p>}
+        <button type='submit' className="button"><span>Создать</span></button>
+      </form>
+    </>
+  );
 }
 
 export default TodoForm;
